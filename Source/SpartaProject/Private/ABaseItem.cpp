@@ -38,7 +38,6 @@ void AABaseItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp, AActor* Othe
 	//OtherActor가 플레이어인지 확인
 	if (OtherActor && OtherActor->ActorHasTag("Player"))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Overlap!!!")));
 		//아이템 사용 로직 호출
 		ActivateItem(OtherActor);
 	}
@@ -79,7 +78,14 @@ void AABaseItem::ActivateItem(AActor* Activator)
 			DestroyParticleTimerHandle,
 			[Particle]()
 			{
-				Particle->DestroyComponent();
+				// GameThread에서 DestroyComponent() 실행
+				AsyncTask(ENamedThreads::GameThread, [Particle]()
+					{
+						if (Particle)
+						{
+							Particle->DestroyComponent();
+						}
+					});
 			},
 			2.0f,
 			false

@@ -37,8 +37,11 @@ protected:
 
 	bool bHasExploded;
 	FTimerHandle ExplosionTimerHandle;
+	FTimerHandle DestroyParticleTimerHandle;
 
 	virtual void ActivateItem(AActor* Activator) override;
 
 	void Explosion();
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };

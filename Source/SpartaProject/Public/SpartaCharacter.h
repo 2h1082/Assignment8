@@ -29,12 +29,39 @@ public:
 	UCameraComponent* CameraComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	UWidgetComponent* OverheadWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UUserWidget> WBP_HPClass;
 
 	//현재 체력 가져오는 함수
 	UFUNCTION(BlueprintPure, Category = "Health")
-	int32 GetHealth() const;
+	float GetHealth() const;
+	//최대 체력 가져오는 함수
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetMaxHealth() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void AddHealth(float Amount);
+	//속도 감소
+
+	UFUNCTION(BlueprintCallable, Category = "Debuff")
+	void SlowSpeed(float SlowAmount);
+	UFUNCTION(BlueprintCallable, Category = "Debuff")
+	void EndSlow();
+
+	//방향 반전
+	UFUNCTION(BlueprintCallable, Category = "Debuff")
+	void ReverseControl();
+	UFUNCTION(BlueprintCallable, Category = "Debuff")
+	void EndReverseControl();
+
+	UFUNCTION(BlueprintPure, Category = "Debuff")
+	bool bIsSlow() const;
+	UFUNCTION(BlueprintPure, Category = "Debuff")
+	bool bIsInversion() const;
+
+	//버프 타이머 핸들러
+	FTimerHandle SlowTimerHandle;
+	FTimerHandle InversionTimerHandle;
 
 protected:
 
@@ -44,6 +71,10 @@ protected:
 	float SprintSpeedMultiplier;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float SprintSpeed;
+	//슬로우 상태 표시
+	bool bHasSlowDebuff;
+	//방향 반전 상태 표시
+	bool bHasControlInversionDebuff;
 
 	//최대 체력
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")

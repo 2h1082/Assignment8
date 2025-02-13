@@ -62,7 +62,50 @@ void ASpartaPlayerController::ShowGameHUD()
 	}
 }
 
-void ASpartaPlayerController::ShowMainMenu(bool bIsRestart)
+void ASpartaPlayerController::ShowMainMenu()
+{
+	//현재 레벨이 MenuLevel이 아니라면 GameOverMenu에서 MenuLevel로 이동(GameOverMenu의 메인 메뉴 버튼 클릭 시 해당 함수 호출)
+	FString CurrentMapName = GetWorld()->GetMapName();
+	if (!CurrentMapName.Contains("MenuLevel"))
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), FName("MenuLevel"));
+	}
+	//HUD가 켜져 있다면 닫기
+	if (HUDWidgetInstance)
+	{
+		HUDWidgetInstance->RemoveFromParent();
+		HUDWidgetInstance = nullptr;
+	}
+
+	//이미 메뉴가 떠있으면 제거
+	if (MainMenuWidgetInstance)
+	{
+		MainMenuWidgetInstance->RemoveFromParent();
+		MainMenuWidgetInstance = nullptr;
+	}
+
+	//이미 게임 오버 메뉴가 떠있으면 제거
+	if (GameOverMenuWidgetInstance)
+	{
+		GameOverMenuWidgetInstance->RemoveFromParent();
+		GameOverMenuWidgetInstance = nullptr;
+	}
+
+	//메뉴 UI 생성
+	if (MainMenuWidgetClass)
+	{
+		MainMenuWidgetInstance = CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
+		if (MainMenuWidgetInstance)
+		{
+			MainMenuWidgetInstance->AddToViewport();
+			bShowMouseCursor = true;
+			SetInputMode(FInputModeUIOnly());
+			SetPause(true);
+		}
+
+	}
+}
+void ASpartaPlayerController::ShowGameOverMenu()
 {
 	//HUD가 켜져 있다면 닫기
 	if (HUDWidgetInstance)
@@ -78,56 +121,51 @@ void ASpartaPlayerController::ShowMainMenu(bool bIsRestart)
 		MainMenuWidgetInstance = nullptr;
 	}
 
-	//메뉴 UI 생성
-	if (MainMenuWidgetClass)
+	//이미 게임 오버 메뉴가 떠있으면 제거
+	if (GameOverMenuWidgetInstance)
 	{
-		MainMenuWidgetInstance = CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
-		if (MainMenuWidgetInstance)
+		GameOverMenuWidgetInstance->RemoveFromParent();
+		GameOverMenuWidgetInstance = nullptr;
+	}
+
+	//게임 오버 메뉴 UI 생성
+	if (GameOverMenuWidgetClass)
+	{
+		GameOverMenuWidgetInstance = CreateWidget<UUserWidget>(this, GameOverMenuWidgetClass);
+		if (GameOverMenuWidgetInstance)
 		{
-			MainMenuWidgetInstance->AddToViewport();
+			GameOverMenuWidgetInstance->AddToViewport();
 
 			bShowMouseCursor = true;
 			SetInputMode(FInputModeUIOnly());
 		}
-		if (UTextBlock* ButtonText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("StartButtonText"))))
+		UFunction* PlayAnimFunc = GameOverMenuWidgetInstance->FindFunction(FName("PlayGameOverAnim"));
+		if (PlayAnimFunc)
 		{
-			if (bIsRestart)
-			{
-				ButtonText->SetText(FText::FromString(TEXT("ReStart")));
-			}
-			else
-			{
-				ButtonText->SetText(FText::FromString(TEXT("Start")));
-			}
+			GameOverMenuWidgetInstance->ProcessEvent(PlayAnimFunc, nullptr);
 		}
-		if (bIsRestart)
+		if (UTextBlock* TotalScoreText = Cast<UTextBlock>(GameOverMenuWidgetInstance->GetWidgetFromName("TotalScoreText")))
 		{
-			UFunction* PlayAnimFunc = MainMenuWidgetInstance->FindFunction(FName("PlayGameOverAnim"));
-			if (PlayAnimFunc)
+			if (USpartaGameInstance* SpartaGameInstance = Cast<USpartaGameInstance>(UGameplayStatics::GetGameInstance(this)))
 			{
-				MainMenuWidgetInstance->ProcessEvent(PlayAnimFunc, nullptr);
-			}
-			if (UTextBlock* TotalScoreText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName("TotalScoreText")))
-			{
-				if (USpartaGameInstance* SpartaGameInstance = Cast<USpartaGameInstance>(UGameplayStatics::GetGameInstance(this)))
-				{
-					TotalScoreText->SetText(FText::FromString(FString::Printf(TEXT("Total Score: %d"), SpartaGameInstance->TotalScore)));
-				}
+				TotalScoreText->SetText(FText::FromString(FString::Printf(TEXT("Total Score: %d"), SpartaGameInstance->TotalScore)));
 			}
 		}
 	}
 }
+
 //게임 시작 - BasicLevel 오픈, GameInstance 리셋
 void ASpartaPlayerController::StartGame()
 {
 	if (USpartaGameInstance* SpartaGameInstance = Cast<USpartaGameInstance>(UGameplayStatics::GetGameInstance(this)))
 	{
-		SpartaGameInstance->CurrentLevelIndex = 0;
+		/*SpartaGameInstance->CurrentLevelIndex = 0;*/
 		SpartaGameInstance->TotalScore = 0;
 	}
 
 	UGameplayStatics::OpenLevel(GetWorld(), FName("BasicLevel"));
 	SetPause(false);
+	
 }
 
 void ASpartaPlayerController::BeginPlay()
@@ -153,7 +191,7 @@ void ASpartaPlayerController::BeginPlay()
 	FString CurrentMapName = GetWorld()->GetMapName();
 	if (CurrentMapName.Contains("MenuLevel"))
 	{
-		ShowMainMenu(false);
+		ShowMainMenu();
 	}
 
 	////HUD 위젯 생성 및 표시

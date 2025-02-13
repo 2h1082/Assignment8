@@ -47,6 +47,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
 	UUserWidget* MainMenuWidgetInstance;
 
+	//게임 오버 메뉴 UI
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
+	TSubclassOf<UUserWidget> GameOverMenuWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
+	UUserWidget* GameOverMenuWidgetInstance;
+
 	UFUNCTION(BlueprintPure, Category = "HUD")
 	UUserWidget* GetHUDWidget() const;
 	//HUD 표시
@@ -54,7 +60,11 @@ public:
 	void ShowGameHUD();
 	//메인 메뉴 표시
 	UFUNCTION(BlueprintCallable, Category = "Menu")
-	void ShowMainMenu(bool bIsRestart);
+	void ShowMainMenu();
+	//게임 오버 메뉴
+	UFUNCTION(BlueprintCallable, Category = "Menu")
+	void ShowGameOverMenu();
+
 	//게임 시작
 	UFUNCTION(BlueprintCallable, Category = "Menu")
 	void StartGame();

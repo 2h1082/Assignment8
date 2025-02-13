@@ -46,11 +46,19 @@ ASpartaCharacter::ASpartaCharacter()
 	//초기 체력 설정
 	MaxHealth = 100.0f;
 	Health = MaxHealth;
+
+	bHasSlowDebuff = false;
+	bHasControlInversionDebuff = false;
 }
 
-int32 ASpartaCharacter::GetHealth() const
+float ASpartaCharacter::GetHealth() const
 {
 	return Health;
+}
+
+float ASpartaCharacter::GetMaxHealth() const
+{
+	return MaxHealth;
 }
 
 void ASpartaCharacter::AddHealth(float Amount)
@@ -58,6 +66,45 @@ void ASpartaCharacter::AddHealth(float Amount)
 	//체력 회복
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
 	UpdateOverheadHP();
+}
+
+void ASpartaCharacter::SlowSpeed(float SlowAmount)
+{
+	NormalSpeed = 600.0f*SlowAmount/100;
+	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	bHasSlowDebuff = true;
+
+	GetWorldTimerManager().SetTimer(SlowTimerHandle, this, &ASpartaCharacter::EndSlow, 5.0f, false);
+}
+
+void ASpartaCharacter::EndSlow()
+{
+	NormalSpeed = 600.0f;
+	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	bHasSlowDebuff = false;
+}
+
+void ASpartaCharacter::ReverseControl()
+{
+	bHasControlInversionDebuff = true;
+	GetWorldTimerManager().SetTimer(InversionTimerHandle, this, &ASpartaCharacter::EndReverseControl, 5.0f, false);
+}
+
+void ASpartaCharacter::EndReverseControl()
+{
+	bHasControlInversionDebuff = false;
+}
+
+bool ASpartaCharacter::bIsSlow() const
+{
+	return bHasSlowDebuff;
+}
+
+bool ASpartaCharacter::bIsInversion() const
+{
+	return bHasControlInversionDebuff;
 }
 
 void ASpartaCharacter::OnDeath()
@@ -69,22 +116,24 @@ void ASpartaCharacter::OnDeath()
 	}
 }
 
-void ASpartaCharacter::UpdateOverheadHP()
+void ASpartaCharacter::UpdateOverheadHP() //블루 프린트로 구현
 {
 	if (!OverheadWidget) return;
 
 	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
 	if (!OverheadWidgetInstance) return;
-
-	if (UTextBlock* HPText = Cast<UTextBlock>(OverheadWidgetInstance->GetWidgetFromName(TEXT("OverHeadHP"))))
-	{
-		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
-	}
+	
 }
 
 void ASpartaCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (WBP_HPClass && OverheadWidget)
+	{
+		OverheadWidget->SetWidgetClass(WBP_HPClass);
+		OverheadWidget->InitWidget();
+	}
 	UpdateOverheadHP();
 }
 
@@ -167,7 +216,13 @@ void ASpartaCharacter::Move(const FInputActionValue& value)
 {
 	if (!Controller) return;
 
-	const FVector2D MoveInput = value.Get<FVector2D>();
+	FVector2D MoveInput = value.Get<FVector2D>();
+
+	//방향 반전 디버프 적용되면 입력값 반전
+	if (bHasControlInversionDebuff)
+	{
+		MoveInput = FVector2D(-MoveInput.X, -MoveInput.Y);
+	}
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
 		AddMovementInput(GetActorForwardVector(), MoveInput.X);

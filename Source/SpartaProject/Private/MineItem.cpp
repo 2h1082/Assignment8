@@ -37,7 +37,7 @@ void AMineItem::Explosion()
 	if (ExplosionParticle)
 	{
 		Particle = UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
+			GetWorld()->PersistentLevel,
 			ExplosionParticle,
 			GetActorLocation(),
 			GetActorRotation(),
@@ -72,20 +72,44 @@ void AMineItem::Explosion()
 		}
 	}
 
-	DestroyItem();
-
 	if (Particle)
 	{
-		FTimerHandle DestroyParticleTimerHandle;
-
 		GetWorld()->GetTimerManager().SetTimer(
 			DestroyParticleTimerHandle,
 			[Particle]()
 			{
-				Particle->DestroyComponent();
+				// GameThread에서 DestroyComponent() 실행
+				AsyncTask(ENamedThreads::GameThread, [Particle]()
+					{
+						if (Particle)
+						{
+							Particle->DestroyComponent();
+						}
+					});
 			},
 			2.0f,
 			false
 		);
+	}
+
+	DestroyItem();
+
+}
+
+//EndPlay() 에서 모든 타이머 해제
+void AMineItem::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// ExplosionTimerHandle 해제
+	if (ExplosionTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
+	}
+
+	// DestroyParticleTimerHandle 해제
+	if (DestroyParticleTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(DestroyParticleTimerHandle);
 	}
 }

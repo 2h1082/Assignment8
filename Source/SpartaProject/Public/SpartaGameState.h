@@ -28,20 +28,20 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin")
 	int32 CollectedCoinCount;
 	//각 레벨이 유지되는 시간(초)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	float LevelDuration;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+	float WaveDuration;
 	//현재 진행 중인 레벨 인덱스
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	int32 CurrentLevelIndex;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+	int32 CurrentWaveIndex;
 	//전체 레벨의 개수
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	int32 MaxLevels;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+	int32 MaxWaves;
 	//실제 레벨 맵 이름 배열, 여기 있는 인덱스를 차례대로 연동
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
 	TArray<FName> LevelMapNames;
 
 	//매 레벨이 끝나기 전까지 시간이 흐르도록 관리하는 타이머
-	FTimerHandle LevelTimerHandle;
+	FTimerHandle WaveTimerHandle;
 	FTimerHandle HUDUpdateTimerHandle;
 
 	//점수를 읽는 함수
@@ -55,13 +55,13 @@ public:
 	void OnGameOver();
 
 	//레벨 시작할 때, 아이템 스폰 및 타이머 설정
-	void StartLevel();
+	void StartWave();
 	//레벨 제한 시간 만료 시 호출
-	void OnLevelTimeUp();
+	void OnWaveTimeUp();
 	//코인 주웠을 때 호출
 	void OnCoinCollected();
 	//레벨을 강제 종료 후 다음 레벨 이동
-	void EndLevel();
+	void EndWave();
 
 	void UpdateHUD();
 };
