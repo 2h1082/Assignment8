@@ -10,6 +10,8 @@
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
 #include "SpartaGameState.h"
+#include "Components/ProgressBar.h"
+
 
 // Sets default values
 ASpartaCharacter::ASpartaCharacter()
@@ -126,7 +128,11 @@ void ASpartaCharacter::UpdateOverheadHP() //블루 프린트로 구현
 
 	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
 	if (!OverheadWidgetInstance) return;
-	
+
+	if (UProgressBar* HPBar = Cast<UProgressBar>(OverheadWidgetInstance->GetWidgetFromName(TEXT("HealthBar"))))
+	{
+		HPBar->SetPercent(FMath::Clamp(Health / MaxHealth,0.0f,1.0f));
+	}
 }
 
 void ASpartaCharacter::BeginPlay()
