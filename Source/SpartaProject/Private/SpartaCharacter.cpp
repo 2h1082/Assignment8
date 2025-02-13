@@ -75,7 +75,9 @@ void ASpartaCharacter::SlowSpeed(float SlowAmount)
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	bHasSlowDebuff = true;
 
-	GetWorldTimerManager().SetTimer(SlowTimerHandle, this, &ASpartaCharacter::EndSlow, 5.0f, false);
+	GetWorldTimerManager().ClearTimer(SlowTimerHandle);
+	float RemainTime=GetWorldTimerManager().GetTimerRemaining(SlowTimerHandle);
+	GetWorldTimerManager().SetTimer(SlowTimerHandle, this, &ASpartaCharacter::EndSlow, 5.0f+RemainTime, false);
 }
 
 void ASpartaCharacter::EndSlow()
@@ -89,7 +91,9 @@ void ASpartaCharacter::EndSlow()
 void ASpartaCharacter::ReverseControl()
 {
 	bHasControlInversionDebuff = true;
-	GetWorldTimerManager().SetTimer(InversionTimerHandle, this, &ASpartaCharacter::EndReverseControl, 5.0f, false);
+	GetWorldTimerManager().ClearTimer(InversionTimerHandle);
+	float RemainTime = GetWorldTimerManager().GetTimerRemaining(InversionTimerHandle);
+	GetWorldTimerManager().SetTimer(InversionTimerHandle, this, &ASpartaCharacter::EndReverseControl, 5.0f+RemainTime, false);
 }
 
 void ASpartaCharacter::EndReverseControl()
@@ -273,3 +277,20 @@ void ASpartaCharacter::StopSprint(const FInputActionValue& value)
 	}
 }
 
+//EndPlay() 에서 모든 타이머 해제
+void ASpartaCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// SlowTimerHandle 해제
+	if (SlowTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SlowTimerHandle);
+	}
+
+	// InversionTimerHandle 해제
+	if (InversionTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(InversionTimerHandle);
+	}
+}

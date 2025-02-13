@@ -59,6 +59,7 @@ void ASpartaGameState::AddScore(int32 Amount)
 
 void ASpartaGameState::StartWave()
 {
+	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (ASpartaPlayerController* SpartaPlayerController = Cast<ASpartaPlayerController>(PlayerController))
@@ -303,4 +304,12 @@ void ASpartaGameState::UpdateHUD()
 			}
 		}
 	}
+}
+
+void ASpartaGameState::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	//Wave 타이머 해제
+	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
+	//HUDupdate 타이머 해제
+	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
 }

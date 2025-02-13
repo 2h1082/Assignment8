@@ -106,4 +106,5 @@ protected:
 	void StartSprint(const FInputActionValue& value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& value);
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };

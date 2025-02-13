@@ -36,6 +36,7 @@ protected:
 	UParticleSystem* PickupParticle;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
 	USoundBase* PickupSound;
+	FTimerHandle DestroyParticleTimerHandle;
 
 	//인터페이스에서 요구하는 함수들
 	virtual void OnItemOverlap(
@@ -55,4 +56,5 @@ protected:
 
 	//아이템 제거 함수
 	virtual void DestroyItem();
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };

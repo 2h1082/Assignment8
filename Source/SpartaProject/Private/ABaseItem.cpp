@@ -72,8 +72,6 @@ void AABaseItem::ActivateItem(AActor* Activator)
 
 	if (Particle)
 	{
-		FTimerHandle DestroyParticleTimerHandle;
-
 		GetWorld()->GetTimerManager().SetTimer(
 			DestroyParticleTimerHandle,
 			[Particle]()
@@ -102,6 +100,12 @@ void AABaseItem::DestroyItem()
 {
 	//객체 제거
 	Destroy();
+}
+
+void AABaseItem::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	//타이머 제거
+	GetWorldTimerManager().ClearTimer(DestroyParticleTimerHandle);
 }
 
 
